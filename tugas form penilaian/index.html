@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulir Identifikasi Ancaman - Sistem Manajemen Gudang</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #e9ecef;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+        .container:hover {
+            transform: translateY(-5px);
+        }
+        h1, h2, h3 {
+            color: #4a4a4a;
+            border-bottom: 2px solid #4a4a4a;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 25px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        select, input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ced4da;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        select:focus, input:focus, textarea:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+        .dread-scores {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .dread-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 5px solid #007bff;
+            transition: transform 0.3s;
+        }
+        .dread-item:hover {
+            transform: scale(1.02);
+        }
+        .help-text {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .score-description {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 5px;
+        }
+        #resultModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 25px;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 12px;
+            position: relative;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+        }
+        .close {
+            position: absolute;
+            right: 15px;
+            top: 10px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .result-high {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .result-medium {
+            color: #ffc107;
+            font-weight: bold;
+        }
+        .result-low {
+            color: #28a745;
+            font-weight: bold;
+        }
+        #assessmentHistory {
+            margin-top: 20px;
+            border-collapse: collapse;
+            width: 100%;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        #assessmentHistory th, #assessmentHistory td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        #assessmentHistory th {
+            background-color: #f2f2f2;
+        }
+        .history-container {
+            margin-top: 40px;
+        }
+        #riskChart {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Formulir Identifikasi Ancaman Sistem Manajemen Gudang</h1>
+        
+        <form id="threatAssessmentForm">
+            <div class="form-group">
+                <h2>1. Identifikasi Aset</h2>
+                <label for="asset">Pilih Aset:</label>
+                <select id="asset" name="asset" required>
+                    <option value="">Pilih aset yang akan dinilai</option>
+                    <option value="server">Server - Pengelolaan dan penyimpanan data</option>
+                    <option value="database">Database - Basis data inventaris</option>
+                    <option value="user_data">Data Pengguna - Informasi staf dan manajer</option>
+                    <option value="api">API Eksternal - Integrasi dengan sistem lain</option>
+                    <option value="wms">Sistem Manajemen Gudang - Aplikasi operasional</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <h2>2. Identifikasi Ancaman (STRIDE)</h2>
+                <label for="threat_type">Tipe Ancaman:</label>
+                <select id="threat_type" name="threat_type" required>
+                    <option value="">Pilih tipe ancaman</option>
+                    <option value="spoofing">Spoofing - Peniruan identitas</option>
+                    <option value="tampering">Tampering - Modifikasi data/sistem</option>
+                    <option value="repudiation">Repudiation - Penyangkalan aktivitas</option>
+                    <option value="information_disclosure">Information Disclosure - Kebocoran informasi</option>
+                    <option value="dos">Denial of Service - Penghentian layanan</option>
+                    <option value="elevation">Elevation of Privilege - Peningkatan hak akses</option>
+                </select>
+            </div>
+
+            <h2>3. Penilaian Risiko (DREAD)</h2>
+            <div class="dread-scores">
+                <div class="dread-item">
+                    <label for="damage">Damage Potential:</label>
+                    <input type="number" id="damage" name="damage" min="1" max="10" required>
+                    <div class="score-description">
+                        1-3: Dampak minimal<br>
+                        4-6: Dampak sedang<br>
+                        7-10: Dampak besar
+                    </div>
+                </div>
+
+                <div class="dread-item">
+                    <label for="reproducibility">Reproducibility:</label>
+                    <input type="number" id="reproducibility" name="reproducibility" min="1" max="10" required>
+                    <div class="score-description">
+                        1-3: Sulit direproduksi<br>
+                        4-6: Dapat direproduksi dengan effort<br>
+                        7-10: Mudah direproduksi
+                    </div>
+                </div>
+
+                <div class="dread-item">
+                    <label for="exploitability">Exploitability:</label>
+                    <input type="number" id="exploitability" name="exploitability" min="1" max="10" required>
+                    <div class="score-description">
+                        1-3: Membutuhkan keahlian tinggi<br>
+                        4-6: Membutuhkan keahlian sedang<br>
+                        7-10: Mudah dieksploitasi
+                    </div>
+                </div>
+
+                <div class="dread-item">
+                    <label for="affected_users">Affected Users:</label>
+                    <input type="number" id="affected_users" name="affected_users" min="1" max="10" required>
+                    <div class="score-description">
+                        1-3: Sedikit pengguna<br>
+                        4-6: Sebagian pengguna<br>
+                        7-10: Mayoritas/semua pengguna
+                    </div>
+                </div>
+
+                <div class="dread-item">
+                    <label for="discoverability">Discoverability:</label>
+                    <input type="number" id="discoverability" name="discoverability" min="1" max="10" required>
+                    <div class="score-description">
+                        1-3: Sulit ditemukan<br>
+                        4-6: Dapat ditemukan dengan usaha<br>
+                        7-10: Mudah ditemukan
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit">Kirim Penilaian</button>
+        </form>
+
+        <div id="resultModal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <h3>Hasil Penilaian Risiko</h3>
+                <p id="riskResult"></p>
+                <canvas id="riskChart"></canvas>
+            </div>
+        </div>
+
+        <div class="history-container">
+            <h2>Riwayat Penilaian Risiko</h2>
+            <table id="assessmentHistory">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Aset</th>
+                        <th>Tipe Ancaman</th>
+                        <th>Peringkat Risiko</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Riwayat penilaian akan ditambahkan di sini -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('threatAssessmentForm');
+        const resultModal = document.getElementById('resultModal');
+        const riskResult = document.getElementById('riskResult');
+        const assessmentHistory = document.getElementById('assessmentHistory').getElementsByTagName('tbody')[0];
+
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const damage = parseInt(document.getElementById('damage').value);
+            const reproducibility = parseInt(document.getElementById('reproducibility').value);
+            const exploitability = parseInt(document.getElementById('exploitability').value);
+            const affected_users = parseInt(document.getElementById('affected_users').value);
+            const discoverability = parseInt(document.getElementById('discoverability').value);
+
+            const totalRiskScore = damage + reproducibility + exploitability + affected_users + discoverability;
+
+            let riskLevel;
+            if (totalRiskScore <= 15) {
+                riskLevel = "Rendah";
+                riskResult.innerHTML = `<span class="result-low">Risiko Rendah: ${totalRiskScore}</span>`;
+            } else if (totalRiskScore <= 30) {
+                riskLevel = "Sedang";
+                riskResult.innerHTML = `<span class="result-medium">Risiko Sedang: ${totalRiskScore}</span>`;
+            } else {
+                riskLevel = "Tinggi";
+                riskResult.innerHTML = `<span class="result-high">Risiko Tinggi: ${totalRiskScore}</span>`;
+            }
+
+            const newRow = assessmentHistory.insertRow();
+            newRow.innerHTML = `
+                <td>${assessmentHistory.rows.length + 1}</td>
+                <td>${document.getElementById('asset').value}</td>
+                <td>${document.getElementById('threat_type').value}</td>
+                <td>${riskLevel}</td>
+            `;
+
+            createChart([damage, reproducibility, exploitability, affected_users, discoverability]);
+            resultModal.style.display = 'block';
+        });
+
+        function closeModal() {
+            resultModal.style.display = 'none';
+        }
+
+        function createChart(scores) {
+            const ctx = document.getElementById('riskChart').getContext('2d');
+            const labels = ['Damage Potential', 'Reproducibility', 'Exploitability', 'Affected Users', 'Discoverability'];
+            const chartData = {
+                labels: labels,
+                datasets: [{
+                    label: 'Skor Penilaian DREAD',
+                    data: scores,
+                    backgroundColor: [
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)',
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)',
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            };
+
+            const options = {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            };
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: chartData,
+                options: options
+            });
+        }
+    </script>
+</body>
+</html>
